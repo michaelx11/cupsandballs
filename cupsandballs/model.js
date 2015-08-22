@@ -5,22 +5,27 @@ root.auth(authConfig.firebaseSecret);
 
 var crypto = require('crypto');
 
-var one_sixth = 1 / 6.0;
+var NUM_SWAPS_POSSIBLE = 8;
+var prob = 1.0 / 8.0;
 function getRandomSwap() {
   var rand = Math.random();
   var move = '';
-  if (rand < one_sixth) {
+  if (rand < prob) {
     move = 'swap12';
-  } else if (rand < 2 * one_sixth) {
+  } else if (rand < 2 * prob) {
     move = 'swap13';
-  } else if (rand < 3 * one_sixth) {
+  } else if (rand < 3 * prob) {
     move = 'swap23';
-  } else if (rand < 4 * one_sixth) {
+  } else if (rand < 4 * prob) {
     move = 'swapleft';
-  } else if (rand < 5 * one_sixth) {
+  } else if (rand < 5 * prob) {
     move = 'swapright';
+  } else if (rand < 6 * prob) {
+    move = 'swapfake1';
+  } else if (rand < 7 * prob) {
+    move = 'swapfake2';
   } else {
-    move = 'swapjk';
+    move = 'swapfake3';
   }
   return move;
 }
@@ -56,16 +61,10 @@ function maintainSessionDict() {
 setInterval(maintainSessionDict, 1000);
 
 function genSessionKey() {
-  return crypto.randomBytes(64).toString('hex');
+  return crypto.randomBytes(32).toString('hex');
 }
 
 function createSession(session_key, answer, swaps, timestamp, duration) {
-  var session = {'level': 0,
-                 'key': session_key, 
-                 'swaps': swaps,
-                 'answer': answer,
-                 'timestamp': getTimeMillis(),
-                 'duration': duration};
   return session;
 }
 
@@ -81,22 +80,20 @@ function performSwap(move, pos) {
     return [temp[1], temp[2], temp[0]];
   } else if (move == 'swapright') {
     return [temp[2], temp[0], temp[1]];
-  } else if (move == 'swapjk') {
-    return temp;
   }
   return pos;
 }
 
 // returns {swaps: array of swaps, final: final arrangement}
 function genListOfSwaps(len) {
-  var pos = ['r', 'g', 'b'];
+  var pos = ['red', 'green', 'blue'];
   var listOfSwaps = [];
   for (var i = 0; i < len; i++) {
     var move = getRandomSwap();
     pos = performSwap(move, pos);
-    listOfSwaps.push_back(move);
+    listOfSwaps.push(move);
   }
-  return {'swaps':listOfSwaps, 'swaps':pos};
+  return {'swaps':listOfSwaps, 'answer':pos};
 }
 
 
@@ -111,21 +108,38 @@ function calcDuration(numSwaps) {
 function initNewSession(level) {
   var session = {};
   var sessionKey = genSessionKey();
-  var swapResults = genListOfSwaps(level + 3);
+  var numSwaps = level + 3;
+  var swapResults = genListOfSwaps(numSwaps);
   var swaps = swapResults['swaps'];
   var answer = swapResults['answer'];
   var duration = calcDuration(numSwaps);
-  return createSession(sessionKey, answer, swaps, timestamp, duration);
+  var color = 'red';
+  var session = {'level': level,
+                 'key': sessionKey, 
+                 'swaps': swaps,
+                 'answer': answer,
+                 'timestamp': getTimeMillis(),
+                 'duration': duration,
+                 'color': color};
+  return session;
+}
+
+function createResponseFromSession(session) {
+  var response = {'key': session.key};
+  response['level'] = session.level;
+  response['color'] = session.color;
+  response['swaps'] = session.swaps;
+  return response;
 }
 
 exports.initGame = function(cbErrorData) {
   // create and add session
   var session = initNewSession(0);
-  sessionDict[session_key] = session;
+  sessionDict[session.key] = session;
 
   // create and return response
-  var response = {'key': session_key};
-  callback(false, response);
+  var response = createResponseFromSession(session);
+  cbErrorData(false, response);
 }
 
 exports.guess = function(guess, key, cbErrorData) {
@@ -135,9 +149,10 @@ exports.guess = function(guess, key, cbErrorData) {
     var session = sessionDict[key];
     delete sessionDict[key];
     if (session.answer[guess] && (session.answer[guess] == session.color)) {
+      var level = session.level + 1;
       var newSession = initNewSession(level);
       sessionDict[newSession.key] = newSession;
-      var response = {'result': 'right', 'key': newSession['key']};
+      var response = createResponseFromSession(newSession);
       cbErrorData(false, response);
     } else {
       var response = {'result': 'wrong'};

@@ -18,7 +18,11 @@ router.get('/initgame', function(req, res, next) {
 });
 
 router.get('/guess', function(req, res, next) {
-  model.guess(req.guess, req.key, function(err, data) {
+  if (!req.query) {
+    res.status(404).send('no params given.');
+    return;
+  }
+  model.guess(req.query.guess, req.query.key, function(err, data) {
     if (err) {
       res.status(404).send(err);
     } else {
