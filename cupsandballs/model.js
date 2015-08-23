@@ -51,6 +51,7 @@ function maintainSessionDict() {
     if (sessionDict.hasOwnProperty(key)) {
       var session = sessionDict[key];
       if (getTimeMillis() - session.timestamp > session.duration) {
+        console.log('deleted baby');
         delete sessionDict[key];
       }
     }
@@ -100,27 +101,63 @@ function genListOfSwaps(len) {
 function searchForGameSession(sessionId) {
 }
 
-var SWAP_DELAY = 50;
-function calcDuration(numSwaps) {
-  return numSwaps * 8 * SWAP_DELAY + 5000;
+function calcDuration(numSwaps, speed) {
+  return numSwaps * 8 * speed + 5000;
+}
+
+function calcShown(level) {
+  var colors = ['red', 'green', 'blue'];
+  var index = Math.floor((Math.random() * 3)) + 1;
+  if (level < 5) {
+    return {'color': colors[index - 1], 'shown':[index]};
+  } else if (level < 10) {
+    var index2 = Math.floor((Math.random() * 3)) + 1;
+    while (index2 == index) {
+      index2 = Math.floor((Math.random() * 3)) + 1;
+    }
+    return {'color': colors[index - 1], 'shown':[index, index2]}
+  } else if (level < 15) {
+    return {'color': colors[index - 1], 'shown':[1, 2, 3]};
+  }
+}
+
+function calcSpeed(level) {
+  var speed = 100 - level * 8;
+  if (speed < 20) {
+    speed = 20;
+  }
+  return speed;
 }
 
 function initNewSession(level) {
   var session = {};
   var sessionKey = genSessionKey();
   var numSwaps = level + 3;
+  var speed = calcSpeed(level);
   var swapResults = genListOfSwaps(numSwaps);
   var swaps = swapResults['swaps'];
   var answer = swapResults['answer'];
-  var duration = calcDuration(numSwaps);
-  var color = 'red';
+  var duration = calcDuration(numSwaps, speed);
+  var shownData = calcShown(level);
+  var color = shownData['color'];
+  var shown = shownData['shown'];
+  if (level >= 5) {
+    var rand = Math.random();
+    if (rand < .33333) {
+      color = 'blue';
+    } else if (rand < .666666) {
+      color = 'green';
+    }
+  }
   var session = {'level': level,
                  'key': sessionKey, 
                  'swaps': swaps,
                  'answer': answer,
                  'timestamp': getTimeMillis(),
                  'duration': duration,
-                 'color': color};
+                 'color': color,
+                 'speed': speed,
+                 'shown': shown};
   return session;
 }
 
@@ -129,6 +166,9 @@ function createResponseFromSession(session) {
   response['level'] = session.level;
   response['color'] = session.color;
   response['swaps'] = session.swaps;
+  response['shown'] = session.shown;
+  response['gamespeed'] = session.speed;
+  response['expiry'] = session.duration;
   return response;
 }
 
@@ -155,7 +195,7 @@ exports.guess = function(guess, key, cbErrorData) {
       var response = createResponseFromSession(newSession);
       cbErrorData(false, response);
     } else {
-      var response = {'result': 'wrong'};
+      var response = {'result': 'wrong', 'level': session.level};
       cbErrorData(false, response);
     }
   }

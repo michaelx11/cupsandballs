@@ -10,7 +10,7 @@ router.get('/', function(req, res, next) {
 router.get('/initgame', function(req, res, next) {
   model.initGame(function(err, data) {
     if (err) {
-      res.status(404).jsonp({'err': err});
+      res.jsonp({'err': err});
     } else {
       res.jsonp(data);
     }
@@ -19,12 +19,12 @@ router.get('/initgame', function(req, res, next) {
 
 router.get('/guess', function(req, res, next) {
   if (!req.query) {
-    res.status(404).jsonp({'err': 'no params given.'});
+    res.jsonp({'err': 'no params given.'});
     return;
   }
   model.guess(req.query.guess, req.query.key, function(err, data) {
     if (err) {
-      res.status(404).jsonp({'err': err});
+      res.jsonp({'err': err});
     } else {
       res.jsonp(data);
     }
