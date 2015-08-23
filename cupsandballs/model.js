@@ -51,7 +51,6 @@ function maintainSessionDict() {
     if (sessionDict.hasOwnProperty(key)) {
       var session = sessionDict[key];
       if (getTimeMillis() - session.timestamp > session.duration) {
-        console.log('deleted baby');
         delete sessionDict[key];
       }
     }
@@ -95,10 +94,6 @@ function genListOfSwaps(len) {
     listOfSwaps.push(move);
   }
   return {'swaps':listOfSwaps, 'answer':pos};
-}
-
-
-function searchForGameSession(sessionId) {
 }
 
 function calcDuration(numSwaps, speed) {
