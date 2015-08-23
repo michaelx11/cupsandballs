@@ -141,14 +141,6 @@ function initNewSession(level) {
   var shownData = calcShown(level);
   var color = shownData['color'];
   var shown = shownData['shown'];
-  if (level >= 5) {
-    var rand = Math.random();
-    if (rand < .33333) {
-      color = 'blue';
-    } else if (rand < .666666) {
-      color = 'green';
-    }
-  }
   var session = {'level': level,
                  'key': sessionKey, 
                  'swaps': swaps,
