@@ -1,8 +1,9 @@
 var Firebase = require('firebase');
 var authConfig = require('./authConfig');
+/*
 var root = new Firebase(authConfig.firebaseURL);
 root.auth(authConfig.firebaseSecret);
-
+*/
 var crypto = require('crypto');
 
 var NUM_SWAPS_POSSIBLE = 8;
@@ -97,7 +98,7 @@ function genListOfSwaps(len) {
 }
 
 function calcDuration(numSwaps, speed) {
-  return numSwaps * 8 * speed + 5000;
+  return numSwaps * 8 * speed + 8000;
 }
 
 function calcShown(level) {
