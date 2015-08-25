@@ -104,15 +104,15 @@ function calcDuration(numSwaps, speed) {
 function calcShown(level) {
   var colors = ['red', 'green', 'blue'];
   var index = Math.floor((Math.random() * 3)) + 1;
-  if (level < 5) {
+  if (level < 3) {
     return {'color': colors[index - 1], 'shown':[index]};
-  } else if (level < 10) {
+  } else if (level < 6) {
     var index2 = Math.floor((Math.random() * 3)) + 1;
     while (index2 == index) {
       index2 = Math.floor((Math.random() * 3)) + 1;
     }
     return {'color': colors[index - 1], 'shown':[index, index2]}
-  } else if (level < 15) {
+  } else if (level < 11) {
     return {'color': colors[index - 1], 'shown':[1, 2, 3]};
   }
 }
@@ -126,6 +126,7 @@ function calcSpeed(level) {
 }
 
 function initNewSession(level) {
+  console.log('initiating new session');
   var session = {};
   var sessionKey = genSessionKey();
   var numSwaps = level + 3;
@@ -183,7 +184,7 @@ exports.guess = function(guess, key, cbErrorData) {
       var response = createResponseFromSession(newSession);
       cbErrorData(false, response);
     } else {
-      var response = {'result': 'wrong', 'level': session.level};
+      var response = {'result': 'wrong', 'level': session.level, 'answer': session.answer, 'shown': session.shown};
       cbErrorData(false, response);
     }
   }
