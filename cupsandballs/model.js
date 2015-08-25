@@ -7,7 +7,7 @@ root.auth(authConfig.firebaseSecret);
 var crypto = require('crypto');
 
 var NUM_SWAPS_POSSIBLE = 8;
-var prob = 1.0 / 8.0;
+var prob = 1.0 / 6.0;
 function getRandomSwap() {
   var rand = Math.random();
   var move = '';
@@ -21,9 +21,9 @@ function getRandomSwap() {
     move = 'swapleft';
   } else if (rand < 5 * prob) {
     move = 'swapright';
-  } else if (rand < 6 * prob) {
+  } else if (rand < 5.33 * prob) {
     move = 'swapfake1';
-  } else if (rand < 7 * prob) {
+  } else if (rand < 5.66 * prob) {
     move = 'swapfake2';
   } else {
     move = 'swapfake3';
@@ -104,21 +104,24 @@ function calcDuration(numSwaps, speed) {
 function calcShown(level) {
   var colors = ['red', 'green', 'blue'];
   var index = Math.floor((Math.random() * 3)) + 1;
-  if (level < 3) {
+  if (level < 5) {
     return {'color': colors[index - 1], 'shown':[index]};
-  } else if (level < 6) {
+  } else if (level < 10) {
     var index2 = Math.floor((Math.random() * 3)) + 1;
     while (index2 == index) {
       index2 = Math.floor((Math.random() * 3)) + 1;
     }
     return {'color': colors[index - 1], 'shown':[index, index2]}
-  } else if (level < 11) {
+  } else {
     return {'color': colors[index - 1], 'shown':[1, 2, 3]};
   }
 }
 
 function calcSpeed(level) {
   var speed = 100 - level * 8;
+  if (level >= 10) {
+    speed += 80 // give them a tax break before making it impossible again
+  }
   if (speed < 20) {
     speed = 20;
   }
