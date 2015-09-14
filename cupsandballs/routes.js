@@ -31,4 +31,28 @@ router.get('/guess', function(req, res, next) {
   });
 });
 
+router.get('/markhighscore', function(req, res, next) {
+  if (!req.query) {
+    res.jsonp({'err': 'no params given.'});
+    return;
+  }
+  model.markhighscore(req.query.color, req.query.key, function(err, data) {
+    if (err) {
+      res.jsonp({'err': err});
+    } else {
+      res.jsonp(data);
+    }
+  });
+});
+
+router.get('/highscore', function(req, res, next) {
+  model.getHighscore(function(err, data) {
+    if (err) {
+      res.jsonp({'err': err});
+    } else {
+      res.jsonp(data);
+    }
+  });
+});
+
 module.exports = router;
